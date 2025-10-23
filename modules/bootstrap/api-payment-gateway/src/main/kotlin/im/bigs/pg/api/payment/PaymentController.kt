@@ -1,12 +1,18 @@
 package im.bigs.pg.api.payment
 
-import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
-import im.bigs.pg.application.payment.port.`in`.PaymentCommand
-import im.bigs.pg.application.payment.port.`in`.*
 import im.bigs.pg.api.payment.dto.CreatePaymentRequest
 import im.bigs.pg.api.payment.dto.PaymentResponse
 import im.bigs.pg.api.payment.dto.QueryResponse
 import im.bigs.pg.api.payment.dto.Summary
+import im.bigs.pg.application.payment.port.`in`.PaymentCommand
+import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
+import im.bigs.pg.application.payment.port.`in`.QueryFilter
+import im.bigs.pg.application.payment.port.`in`.QueryPaymentsUseCase
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.validation.annotation.Validated
@@ -23,6 +29,7 @@ import java.time.LocalDateTime
  * - POST: 결제 생성
  * - GET: 결제 조회(커서 페이지네이션 + 통계)
  */
+@Tag(name = "결제", description = "결제 생성 및 조회 API")
 @RestController
 @RequestMapping("/api/v1/payments")
 @Validated
@@ -32,10 +39,8 @@ class PaymentController(
 ) {
 
     /** 결제 생성 요청 페이로드(간소화된 필드). */
-    
 
     /** API 응답을 위한 변환용 DTO. 도메인 모델을 그대로 노출하지 않습니다. */
-    
 
     /**
      * 결제 생성.
@@ -43,6 +48,12 @@ class PaymentController(
      * @param req 결제 요청 본문
      * @return 생성된 결제 요약 응답
      */
+    @Operation(summary = "결제 생성", description = "새로운 결제를 생성하고 PG 승인을 받습니다. 제휴사별 수수료 정책이 자동 적용됩니다.")
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "결제 승인 성공"),
+        ApiResponse(responseCode = "400", description = "잘못된 요청 (필수 필드 누락, 유효하지 않은 값)"),
+        ApiResponse(responseCode = "422", description = "PG 승인 실패 (카드 한도 초과, 분실/도난 카드 등)"),
+    )
     @PostMapping
     fun create(@RequestBody req: CreatePaymentRequest): ResponseEntity<PaymentResponse> {
         val saved = paymentUseCase.pay(
@@ -58,7 +69,6 @@ class PaymentController(
     }
 
     /** 목록 + 통계를 포함한 조회 응답. */
-    
 
     /**
      * 결제 조회(커서 기반 페이지네이션 + 통계).
@@ -71,14 +81,22 @@ class PaymentController(
      * @param limit 페이지 크기(기본 20)
      * @return 목록/통계/커서 정보
      */
+    @Operation(
+        summary = "결제 조회",
+        description = "결제 내역을 조회합니다. 커서 기반 페이지네이션과 통계 정보를 제공합니다."
+    )
+    @ApiResponses(
+        ApiResponse(responseCode = "200", description = "조회 성공"),
+        ApiResponse(responseCode = "400", description = "잘못된 요청 (잘못된 날짜 형식, 유효하지 않은 status 값 등)"),
+    )
     @GetMapping
     fun query(
-        @RequestParam(required = false) partnerId: Long?,
-        @RequestParam(required = false) status: String?,
-        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") from: LocalDateTime?,
-        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") to: LocalDateTime?,
-        @RequestParam(required = false) cursor: String?,
-        @RequestParam(defaultValue = "20") limit: Int,
+        @Parameter(description = "제휴사 ID") @RequestParam(required = false) partnerId: Long?,
+        @Parameter(description = "결제 상태 (APPROVED, CANCELED)") @RequestParam(required = false) status: String?,
+        @Parameter(description = "조회 시작 시각 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") from: LocalDateTime?,
+        @Parameter(description = "조회 종료 시각 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") to: LocalDateTime?,
+        @Parameter(description = "페이지 커서 (다음 페이지 조회용)") @RequestParam(required = false) cursor: String?,
+        @Parameter(description = "페이지 크기 (기본 20)") @RequestParam(defaultValue = "20") limit: Int,
     ): ResponseEntity<QueryResponse> {
         val res = queryPaymentsUseCase.query(
             QueryFilter(partnerId, status, from, to, cursor, limit),
