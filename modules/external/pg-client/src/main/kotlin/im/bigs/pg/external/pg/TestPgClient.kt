@@ -35,7 +35,7 @@ class TestPgClient(
     override fun approve(request: PgApproveRequest): PgApproveResult {
         val plainJson = objectMapper.writeValueAsString(
             mapOf(
-                "cardNumber" to "${request.cardBin}111111${request.cardLast4}",
+                "cardNumber" to "1111111111111111",
                 "birthDate" to "19900101",
                 "expiry" to "1227",
                 "password" to "12",

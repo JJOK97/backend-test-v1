@@ -10,9 +10,9 @@ class AesGcmEncryption(
     private val apiKey: String,
     private val ivBase64Url: String,
 ) {
-    private val cipher = Cipher.getInstance("AES/GCM/NoPadding")
-
     fun encrypt(plainText: String): String {
+        val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+
         val keyBytes = MessageDigest.getInstance("SHA-256")
             .digest(apiKey.toByteArray(Charsets.UTF_8))
         val secretKey = SecretKeySpec(keyBytes, "AES")
