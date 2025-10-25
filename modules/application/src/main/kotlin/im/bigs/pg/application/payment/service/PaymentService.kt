@@ -25,9 +25,20 @@ class PaymentService(
     private val pgClients: List<PgClientOutPort>,
 ) : PaymentUseCase {
     /**
-     * 결제 승인/수수료 계산/저장을 순차적으로 수행합니다.
-     * - 현재 예시 구현은 하드코드된 수수료(3% + 100)로 계산합니다.
-     * - 과제: 제휴사별 수수료 정책을 적용하도록 개선해 보세요.
+     * 결제 승인 요청을 처리하고 제휴사별 수수료 정책을 적용하여 결제를 생성합니다.
+     *
+     * 처리 흐름 :
+     * 1. 제휴사 정보 조회 및 활성화 상태 검증
+     * 2. 제휴사에 맞는 PG 클라이언트 선택
+     * 3. PG 승인 요청 수행
+     * 4. 제휴사별 수수료 정책 조회
+     * 5. FeeCalculator로 수수료 및 정산금 계산
+     * 6. 결제 정보 저장
+     *
+     * @param command 결제 요청 정보 (제휴사 ID, 금액, 카드 정보 등)
+     * @return 저장된 결제 정보 (수수료, 정산금, 승인번호 포함)
+     * @throws IllegalArgumentException 제휴사를 찾을 수 없거나 비활성화된 경우
+     * @throws IllegalStateException PG 클라이언트 또는 수수료 정책을 찾을 수 없는 경우
      */
     override fun pay(command: PaymentCommand): Payment {
         val partner = partnerRepository.findById(command.partnerId)
