@@ -17,3 +17,7 @@ spring:
 server:
   port: 8080
 
+testpg:
+  api-key: ${TESTPG_API_KEY}
+  iv: ${TESTPG_IV}
+  base-url: "https://api-test-pg.bigs.im"
