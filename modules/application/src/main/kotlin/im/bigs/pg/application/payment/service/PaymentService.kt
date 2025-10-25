@@ -31,11 +31,11 @@ class PaymentService(
      */
     override fun pay(command: PaymentCommand): Payment {
         val partner = partnerRepository.findById(command.partnerId)
-            ?: throw IllegalArgumentException("Partner not found: ${command.partnerId}")
-        require(partner.active) { "Partner is inactive: ${partner.id}" }
+            ?: throw IllegalArgumentException("제휴사를 찾을 수 없습니다: ${command.partnerId}")
+        require(partner.active) { "비활성화된 제휴사입니다: ${partner.id}" }
 
         val pgClient = pgClients.firstOrNull { it.supports(partner.id) }
-            ?: throw IllegalStateException("No PG client for partner ${partner.id}")
+            ?: throw IllegalStateException("제휴사 ${partner.id}에 대한 PG 클라이언트를 찾을 수 없습니다")
 
         val approve = pgClient.approve(
             PgApproveRequest(
@@ -46,13 +46,19 @@ class PaymentService(
                 productName = command.productName,
             ),
         )
-        val hardcodedRate = java.math.BigDecimal("0.0300")
-        val hardcodedFixed = java.math.BigDecimal("100")
-        val (fee, net) = FeeCalculator.calculateFee(command.amount, hardcodedRate, hardcodedFixed)
+
+        val policy = feePolicyRepository.findEffectivePolicy(partner.id)
+            ?: throw IllegalStateException("제휴사 ${partner.id}의 수수료 정책을 찾을 수 없습니다")
+
+        val (fee, net) = FeeCalculator.calculateFee(
+            command.amount,
+            policy.percentage,
+            policy.fixedFee ?: java.math.BigDecimal.ZERO,
+        )
         val payment = Payment(
             partnerId = partner.id,
             amount = command.amount,
-            appliedFeeRate = hardcodedRate,
+            appliedFeeRate = policy.percentage,
             feeAmount = fee,
             netAmount = net,
             cardBin = command.cardBin,
