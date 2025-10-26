@@ -18,5 +18,6 @@ dependencies {
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "mockito-core")
     }
-    testImplementation(libs.database.h2)
+    testImplementation(libs.testcontainers.mariadb)
+    testImplementation(libs.testcontainers.junit)
 }
