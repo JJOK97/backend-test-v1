@@ -98,8 +98,8 @@
 ./gradlew :modules:application:test --tests PaymentServiceTest
 ./gradlew :modules:application:test --tests QueryPaymentsServiceTest
 
-- **PaymentServiceTest**: 결제 생성, 수수료 정책 적용, 예외 처리
-- **QueryPaymentsServiceTest**: 필터 조회, 커서 페이지네이션, 통계 집계
+- PaymentServiceTest: 결제 생성, 수수료 정책 적용, 예외 처리
+- QueryPaymentsServiceTest: 필터 조회, 커서 페이지네이션, 통계 집계
 ```
 
 3. 인프라 계층
@@ -107,8 +107,8 @@
 ./gradlew :modules:infrastructure:persistence:test --tests FeePolicyEffectiveDateTest
 ./gradlew :modules:infrastructure:persistence:test --tests PaymentRepositoryPagingTest
 
-- **FeePolicyEffectiveDateTest**: `effective_from` 기준 최신 정책 선택 (JPA 쿼리 검증)
-- **PaymentRepositoryPagingTest**: 커서 기반 페이징 및 통계 일관성 (DB 통합)
+- FeePolicyEffectiveDateTest: `effective_from` 기준 최신 정책 선택 (JPA 쿼리 검증)
+- PaymentRepositoryPagingTest: 커서 기반 페이징 및 통계 일관성 (DB 통합)
 ```
 ---
 
