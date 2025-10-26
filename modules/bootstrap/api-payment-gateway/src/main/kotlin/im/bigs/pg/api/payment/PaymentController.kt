@@ -91,12 +91,12 @@ class PaymentController(
     )
     @GetMapping
     fun query(
-        @Parameter(description = "제휴사 ID") @RequestParam(required = false) partnerId: Long?,
-        @Parameter(description = "결제 상태 (APPROVED, CANCELED)") @RequestParam(required = false) status: String?,
-        @Parameter(description = "조회 시작 시각 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") from: LocalDateTime?,
-        @Parameter(description = "조회 종료 시각 (yyyy-MM-dd HH:mm:ss)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") to: LocalDateTime?,
-        @Parameter(description = "페이지 커서 (다음 페이지 조회용)") @RequestParam(required = false) cursor: String?,
-        @Parameter(description = "페이지 크기 (기본 20)") @RequestParam(defaultValue = "20") limit: Int,
+        @Parameter(description = "제휴사 ID (예: 1)") @RequestParam(required = false) partnerId: Long?,
+        @Parameter(description = "결제 상태 (예: APPROVED, CANCELED)") @RequestParam(required = false) status: String?,
+        @Parameter(description = "조회 시작 시각 (예: 2025-01-01 00:00:00)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") from: LocalDateTime?,
+        @Parameter(description = "조회 종료 시각 (예: 2025-12-31 23:59:59)") @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") to: LocalDateTime?,
+        @Parameter(description = "페이지 커서 (예: eyJjc...)") @RequestParam(required = false) cursor: String?,
+        @Parameter(description = "페이지 크기") @RequestParam(defaultValue = "20") limit: Int,
     ): ResponseEntity<QueryResponse> {
         val res = queryPaymentsUseCase.query(
             QueryFilter(partnerId, status, from, to, cursor, limit),
