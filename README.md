@@ -41,8 +41,8 @@
    - Swagger UI에서 전체 API 명세를 확인할 수 있습니다.  
    - http://localhost:8080/swagger-ui.html  
    
-- [] 외부 DB로 전환  
-   - Maria DB 대체 방안 수립   
+- [x] 외부 DB로 전환  
+   - MariaDB와 flyway로 마이그레이션 진행
 
 - [] 추가 제휴사 연동  
    - PG Client 추가에 대한 전략 수립
@@ -54,19 +54,24 @@
 - [] 헥사고널에 대한 학습
 - [] Kotlin + Spring에 대한 학습
 - [] GCM 및 IV, AES 보안에 관한 학습
+- [] 로그와 메트릭을 활용한 운영지표 학습
+- [] PostgreSql로 MariaDB 대체 고려   
 
 ---
 
 ### 실행 방법
 
-**기술 스택**  
+**기술 스택**
    - Language : Kotlin 1.9.25
    - Framework : Spring Boot 3.4.4
    - JVM : Java 21
-   - Database : H2 (마이그레이션 후 수정 예정)
+   - Database : MariaDB 11.2
+   - Migration : Flyway
    - ORM : JPA/Hibernate
    - Build : Gradle 8.14 (Kotlin DSL)
+   - Container : Docker & Docker Compose
    - Library : Spring Data JPA, Jackson, SpringDoc OpenAPI
+   - Test : JUnit 5, Mockk, Testcontainers
 
 <br>
 
@@ -75,8 +80,12 @@
 # ktlint 포멧 실행
 ./gradlew ktlintFormat
 
-# 빌드
+# 빌드 및 테스트
 ./gradlew build
+
+# 도커 데스크탑 등 실행
+# MariaDB 컨테이너 시작
+docker-compose up -d mariadb
 
 # 애플리케이션 실행
 ./gradlew :modules:bootstrap:api-payment-gateway:bootRun
@@ -114,7 +123,9 @@
 
 ### 참고
 
-   - 개발에 필요한 자료 정리 및 트러블 슈팅은 [wiki](https://github.com/JJOK97/backend-test-v1/wiki)에 정리되어 있습니다.  
+   - 개발에 필요한 도메인 학습 및 트러블 슈팅은 [wiki](https://github.com/JJOK97/backend-test-v1/wiki)에 정리되어 있습니다.  
    - 기존의 README.md는 help.md로 변경되었습니다.
+
+---
 
 **감사합니다.**
