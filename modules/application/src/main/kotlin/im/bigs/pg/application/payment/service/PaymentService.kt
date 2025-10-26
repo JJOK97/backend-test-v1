@@ -6,7 +6,7 @@ import im.bigs.pg.application.payment.port.`in`.PaymentCommand
 import im.bigs.pg.application.payment.port.`in`.PaymentUseCase
 import im.bigs.pg.application.payment.port.out.PaymentOutPort
 import im.bigs.pg.application.pg.port.out.PgApproveRequest
-import im.bigs.pg.application.pg.port.out.PgClientOutPort
+import im.bigs.pg.application.pg.service.PgClientSelector
 import im.bigs.pg.domain.calculation.FeeCalculator
 import im.bigs.pg.domain.payment.Payment
 import im.bigs.pg.domain.payment.PaymentStatus
@@ -22,7 +22,7 @@ class PaymentService(
     private val partnerRepository: PartnerOutPort,
     private val feePolicyRepository: FeePolicyOutPort,
     private val paymentRepository: PaymentOutPort,
-    private val pgClients: List<PgClientOutPort>,
+    private val pgClientSelector: PgClientSelector,
 ) : PaymentUseCase {
     /**
      * 결제 승인 요청을 처리하고 제휴사별 수수료 정책을 적용하여 결제를 생성합니다.
@@ -45,10 +45,8 @@ class PaymentService(
             ?: throw IllegalArgumentException("제휴사를 찾을 수 없습니다: ${command.partnerId}")
         require(partner.active) { "비활성화된 제휴사입니다: ${partner.id}" }
 
-        val pgClient = pgClients.firstOrNull { it.supports(partner.id) }
-            ?: throw IllegalStateException("제휴사 ${partner.id}에 대한 PG 클라이언트를 찾을 수 없습니다")
-
-        val approve = pgClient.approve(
+        val approve = pgClientSelector.approveWithFailover(
+            partner.id,
             PgApproveRequest(
                 partnerId = partner.id,
                 amount = command.amount,
