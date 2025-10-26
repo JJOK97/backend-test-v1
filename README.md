@@ -37,25 +37,24 @@
 
 **2. 선택 과제**
 
-- [x] API 문서화  
+- [x] API 문서화 및 logger 설정
    - Swagger UI에서 전체 API 명세를 확인할 수 있습니다.  
    - http://localhost:8080/swagger-ui.html  
+   - logger는 `PgClientSelectorFailoverTest.kt`에 구현되어 있습니다.
    
 - [x] 외부 DB로 전환  
    - MariaDB와 flyway로 마이그레이션 진행
 
-- [] 추가 제휴사 연동  
+- [x] 추가 제휴사 연동  
    - PG Client 추가에 대한 전략 수립
 
 <br>
 
 **3. 기타**
 
-- [] 헥사고널에 대한 학습
-- [] Kotlin + Spring에 대한 학습
-- [] GCM 및 IV, AES 보안에 관한 학습
-- [] 로그와 메트릭을 활용한 운영지표 학습
-- [] PostgreSql로 MariaDB 대체 고려   
+- [] 멀티 모듈과 헥사고널에 대한 학습
+- [] Kotlin + Spring과 Java + Spring 비교 학습
+- [] GCM 및 IV 학습
 
 ---
 
@@ -71,6 +70,7 @@
    - Build : Gradle 8.14 (Kotlin DSL)
    - Container : Docker & Docker Compose
    - Library : Spring Data JPA, Jackson, SpringDoc OpenAPI
+   - Logging : SLF4J
    - Test : JUnit 5, Mockk, Testcontainers
 
 <br>
@@ -97,27 +97,34 @@ docker-compose up -d mariadb
 
 1. 도메인 계층
 ```bash
+- 수수료 계산 로직 검증
 ./gradlew :modules:domain:test --tests FeeCalculatorTest
-
-- 수수료 계산 로직 검증 (퍼센트, 고정 수수료, HALF_UP 반올림)
 ```
 
 2. 애플리케이션 계층
 ```bash
-./gradlew :modules:application:test --tests PaymentServiceTest
-./gradlew :modules:application:test --tests QueryPaymentsServiceTest
-
 - PaymentServiceTest: 결제 생성, 수수료 정책 적용, 예외 처리
+./gradlew :modules:application:test --tests PaymentServiceTest
+
 - QueryPaymentsServiceTest: 필터 조회, 커서 페이지네이션, 통계 집계
+./gradlew :modules:application:test --tests QueryPaymentsServiceTest
 ```
 
 3. 인프라 계층
 ```bash
+- FeePolicyEffectiveDateTest: `effective_from` 기준 최신 정책 선택
 ./gradlew :modules:infrastructure:persistence:test --tests FeePolicyEffectiveDateTest
+
+- PaymentRepositoryPagingTest: 커서 기반 페이징 및 통계 일관성
 ./gradlew :modules:infrastructure:persistence:test --tests PaymentRepositoryPagingTest
 
-- FeePolicyEffectiveDateTest: `effective_from` 기준 최신 정책 선택 (JPA 쿼리 검증)
-- PaymentRepositoryPagingTest: 커서 기반 페이징 및 통계 일관성 (DB 통합)
+- Multi-PG Failover
+- 우선순위 기반 PG 선택
+- Failover 동작 검증
+- 비활성화된 PG 스킵
+- 매핑 없는 제휴사 예외 처리
+
+./gradlew :modules:infrastructure:persistence:test --tests PgClientSelectorFailoverTest
 ```
 ---
 
