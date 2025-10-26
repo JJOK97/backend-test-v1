@@ -6,6 +6,7 @@ import im.bigs.pg.application.pg.port.out.PgApproveRequest
 import im.bigs.pg.application.pg.port.out.PgApproveResult
 import im.bigs.pg.application.pg.port.out.PgClientOutPort
 import im.bigs.pg.domain.payment.PaymentStatus
+import im.bigs.pg.domain.pg.PgType
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
@@ -37,6 +38,8 @@ class TestPgClient(
     private val restTemplate: RestTemplate,
     private val objectMapper: ObjectMapper,
 ) : PgClientOutPort {
+
+    override val type: PgType = PgType.TEST_PG
 
     private val encryption = AesGcmEncryption(apiKey, iv)
 
