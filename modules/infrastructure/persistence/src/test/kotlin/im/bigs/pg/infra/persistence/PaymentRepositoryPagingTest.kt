@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 @ContextConfiguration(classes = [JpaConfig::class])
 class PaymentRepositoryPagingTest @Autowired constructor(
     val paymentRepo: PaymentJpaRepository,
-) {
+) : MariaDbTestBase() {
     @Test
     @DisplayName("커서 페이징과 통계가 일관되어야 한다")
     fun `커서 페이징과 통계가 일관되어야 한다`() {

@@ -14,7 +14,6 @@ dependencies {
     implementation(libs.spring.boot.starter.jpa)
     implementation(libs.bundles.bootstrap)
     implementation(libs.springdoc.openapi)
-    implementation("me.paulschwarz:spring-dotenv:4.0.0")
     testImplementation(libs.bundles.test)
     testImplementation(libs.spring.boot.starter.test) {
         exclude(module = "mockito-core")

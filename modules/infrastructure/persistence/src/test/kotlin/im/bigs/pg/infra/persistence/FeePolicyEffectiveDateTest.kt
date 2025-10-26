@@ -31,7 +31,7 @@ import kotlin.test.assertNull
 class FeePolicyEffectiveDateTest @Autowired constructor(
     val adapter: FeePolicyPersistenceAdapter,
     val repository: FeePolicyJpaRepository,
-) {
+) : MariaDbTestBase() {
 
     @BeforeEach
     fun setUp() {

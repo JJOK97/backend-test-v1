@@ -4,6 +4,7 @@ mockk = "1.13.5"
 junit-platform = "1.10.2"
 fixture = "1.2.0"
 springdoc = "2.3.0"
+testcontainers = "1.19.7"
 
 [libraries]
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
@@ -18,6 +19,9 @@ spring-boot-starter-validation = { module = "org.springframework.boot:spring-boo
 spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-boot-starter-logging = { module = "org.springframework.boot:spring-boot-starter-logging" }
 
+flyway-core = { module = "org.flywaydb:flyway-core" }
+flyway-mysql = { module = "org.flywaydb:flyway-mysql" }
+
 spring-context = { module = "org.springframework:spring-context" }
 spring-mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 
@@ -26,6 +30,8 @@ database-mariadb = { module = "org.mariadb.jdbc:mariadb-java-client" }
 
 test-junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "junit-platform" }
 test-fixture = { module = "com.appmattus.fixture:fixture", version.ref = "fixture" }
+testcontainers-mariadb = { module = "org.testcontainers:mariadb", version.ref = "testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 
 springdoc-openapi = { module = "org.springdoc:springdoc-openapi-starter-webmvc-ui", version.ref = "springdoc" }
 
