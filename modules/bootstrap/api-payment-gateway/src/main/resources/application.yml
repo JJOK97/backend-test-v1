@@ -45,5 +45,5 @@ spring:
         dialect: org.hibernate.dialect.MariaDBDialect
   flyway:
     enabled: true
-    locations: filesystem:sql/mariadb
+    locations: filesystem:../../../sql/mariadb
     baseline-on-migrate: true
