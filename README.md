@@ -19,26 +19,27 @@
 **1. 필수 과제**  
 - [x] 제휴사별 수수료 정책
   - 하드코드 제거 및 `FeePolicyRepository` 기반 정책 조회
-  - 정책 미존재 시 예외 처리
+  - 정책에 대한 단위/통합 테스트
 
 - [x] 결제 생성 API (`POST /api/v1/payments`)
   - TestPG 연동 및 승인 처리
   - 제휴사별 수수료 정책(`partner_fee_policy`) 조회 및 적용
   - `effective_from` 기준 최신 정책 자동 선택
-  - 수수료/정산금 계산
+  - 수수료/정산금 계산 단위 테스트
   
-- [] 결제 조회 API + 통계 (`GET /api/v1/payments`)
+- [x] 결제 조회 API + 통계 (`GET /api/v1/payments`)
   - 커서 기반 페이지네이션 (`createdAt desc, id desc`)
   - 필터: `partnerId`, `status`, `from`, `to`, `limit`
   - 통계 집계: 필터와 동일한 집합 대상 (`count`, `totalAmount`, `totalNetAmount`)
+  - 페이지네이션 단위 테스트
 
 <br>
 
 **2. 선택 과제**
 
 - [x] API 문서화 (SpringDoc OpenAPI 3, Swagger)
-- [] 추가 제휴사 연동
 - [] 외부 DB로 전환 (PostgreSQL)
+- [] 추가 제휴사 연동
 
 <br>
 
