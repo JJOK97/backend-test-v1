@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:../../../.env[.properties]
   datasource:
     url: jdbc:h2:mem:pgdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
@@ -14,6 +16,8 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  flyway:
+    enabled: false
 server:
   port: 8080
 
@@ -21,3 +25,25 @@ testpg:
   api-key: ${TESTPG_API_KEY}
   iv: ${TESTPG_IV}
   base-url: "https://api-test-pg.bigs.im"
+
+---
+# MariaDB Profile
+spring:
+  config:
+    activate:
+      on-profile: mariadb
+  datasource:
+    url: jdbc:mariadb://localhost:3306/${DB_NAME:payment_gateway}
+    driver-class-name: org.mariadb.jdbc.Driver
+    username: ${DB_USER:dbuser}
+    password: ${DB_PASSWORD:dbpassword}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MariaDBDialect
+  flyway:
+    enabled: true
+    locations: filesystem:sql/mariadb
+    baseline-on-migrate: true

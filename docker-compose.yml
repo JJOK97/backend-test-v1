@@ -5,10 +5,10 @@ services:
     image: mariadb:11.2
     container_name: mariadb-payment-gateway
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: payment_gateway
-      MYSQL_USER: dbuser
-      MYSQL_PASSWORD: dbpassword
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
