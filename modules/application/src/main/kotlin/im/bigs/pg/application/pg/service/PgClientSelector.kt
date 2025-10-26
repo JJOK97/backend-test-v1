@@ -4,6 +4,7 @@ import im.bigs.pg.application.pg.port.out.PgApproveRequest
 import im.bigs.pg.application.pg.port.out.PgApproveResult
 import im.bigs.pg.application.pg.port.out.PgClientOutPort
 import im.bigs.pg.application.pg.port.out.PgMappingOutPort
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
@@ -26,6 +27,7 @@ class PgClientSelector(
     private val pgMappingRepository: PgMappingOutPort,
     private val pgClients: List<PgClientOutPort>,
 ) {
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     /**
      * 제휴사의 PG 매핑에 따라 결제 승인을 시도합니다.
@@ -40,31 +42,52 @@ class PgClientSelector(
         // 1. DB에서 제휴사의 PG 매핑 목록 조회 (우선순위 순)
         val mappings = pgMappingRepository.findActiveByPartnerIdOrderByPriority(partnerId)
 
+        logger.info("========================================")
+        logger.info("[PG 선택] 제휴사 ID: $partnerId")
+        logger.info("[PG 매핑 조회] 활성화된 PG 매핑 ${mappings.size}개 발견")
+        mappings.forEachIndexed { index, mapping ->
+            logger.info("  ${index + 1}순위: ${mapping.pgType} (우선순위: ${mapping.priority}, 활성화: ${mapping.isActive})")
+        }
+
         if (mappings.isEmpty()) {
+            logger.error("[PG 선택 실패] 제휴사 $partnerId 에 대한 PG 매핑이 없습니다")
             throw IllegalStateException("제휴사 $partnerId 에 대한 PG 매핑이 없습니다")
         }
 
         // 2. 우선순위대로 PG 선택 및 승인 시도
         val failedPgs = mutableListOf<String>()
 
-        for (mapping in mappings) {
+        for ((index, mapping) in mappings.withIndex()) {
             val pgClient = pgClients.find { it.type == mapping.pgType }
 
             if (pgClient == null) {
+                logger.warn("[${index + 1}순위 ${mapping.pgType}] 구현체를 찾을 수 없습니다")
                 failedPgs.add("${mapping.pgType}(구현체 없음)")
                 continue
             }
 
             try {
+                logger.info("[${index + 1}순위 ${mapping.pgType}] 결제 승인 시도 중...")
                 val result = pgClient.approve(request)
+                logger.info("[${index + 1}순위 ${mapping.pgType}] ✓ 승인 성공!")
+                logger.info("  - 승인번호: ${result.approvalCode}")
+                logger.info("  - 승인시각: ${result.approvedAt}")
+                logger.info("  - 상태: ${result.status}")
+                logger.info("========================================")
                 return result
             } catch (e: Exception) {
+                logger.warn("[${index + 1}순위 ${mapping.pgType}] ✗ 승인 실패: ${e.message}")
                 failedPgs.add("${mapping.pgType}(${e.message})")
                 // 다음 PG로 계속 진행
+                if (index < mappings.size - 1) {
+                    logger.info("[Failover] ${index + 2}순위 PG로 재시도합니다...")
+                }
             }
         }
 
         // 3. 모든 PG 실패
+        logger.error("[PG 선택 실패] 모든 PG 승인 실패. 시도한 PG: $failedPgs")
+        logger.info("========================================")
         throw IllegalStateException(
             "제휴사 $partnerId 의 모든 PG 승인 실패. 시도한 PG: $failedPgs",
         )

@@ -10,4 +10,6 @@ dependencies {
     implementation(projects.modules.domain)
     // Only need Spring annotations (@Service) for this module
     implementation("org.springframework:spring-context")
+    // Logging
+    implementation("org.slf4j:slf4j-api")
 }
