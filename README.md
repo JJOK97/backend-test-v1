@@ -40,7 +40,7 @@
 - [x] API 문서화 및 logger 설정
    - Swagger UI에서 전체 API 명세를 확인할 수 있습니다.  
    - http://localhost:8080/swagger-ui.html  
-   - logger는 `PgClientSelectorFailoverTest.kt`에 구현되어 있습니다.
+   - `build` 실행 시 logger를 확인할 수 있습니다.
    
 - [x] 외부 DB로 전환  
    - MariaDB와 flyway로 마이그레이션 진행
