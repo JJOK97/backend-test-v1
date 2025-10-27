@@ -1,10 +1,12 @@
 package im.bigs.pg.api.config
 
+import im.bigs.pg.domain.pg.PgType
 import im.bigs.pg.infra.persistence.partner.entity.FeePolicyEntity
 import im.bigs.pg.infra.persistence.partner.entity.PartnerEntity
 import im.bigs.pg.infra.persistence.partner.repository.FeePolicyJpaRepository
 import im.bigs.pg.infra.persistence.partner.repository.PartnerJpaRepository
-import org.slf4j.LoggerFactory
+import im.bigs.pg.infra.persistence.pg.entity.PgMappingEntity
+import im.bigs.pg.infra.persistence.pg.repository.PgMappingJpaRepository
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,16 +19,16 @@ import java.time.Instant
  */
 @Configuration
 class DataInitializer {
-    private val log = LoggerFactory.getLogger(javaClass)
-
     @Bean
     fun seed(
         partnerRepo: PartnerJpaRepository,
         feeRepo: FeePolicyJpaRepository,
+        pgMappingRepo: PgMappingJpaRepository,
     ) = CommandLineRunner {
         if (partnerRepo.count() == 0L) {
             val p1 = partnerRepo.save(PartnerEntity(code = "MOCK1", name = "Mock Partner 1", active = true))
             val p2 = partnerRepo.save(PartnerEntity(code = "TESTPAY1", name = "TestPay Partner 1", active = true))
+
             feeRepo.save(
                 FeePolicyEntity(
                     partnerId = p1.id!!,
@@ -43,7 +45,43 @@ class DataInitializer {
                     fixedFee = BigDecimal("100"),
                 ),
             )
-            log.info("Seeded partners: {} and {}", p1.id, p2.id)
+
+            // PG 매핑 시드 데이터
+            // Partner 1: MOCK(1순위), TEST_PG(2순위)
+            pgMappingRepo.save(
+                PgMappingEntity(
+                    partnerId = p1.id!!,
+                    pgType = PgType.MOCK,
+                    priority = 1,
+                    isActive = true,
+                ),
+            )
+            pgMappingRepo.save(
+                PgMappingEntity(
+                    partnerId = p1.id!!,
+                    pgType = PgType.TEST_PG,
+                    priority = 2,
+                    isActive = true,
+                ),
+            )
+
+            // Partner 2: TEST_PG(1순위), DUMMY_PAY(2순위)
+            pgMappingRepo.save(
+                PgMappingEntity(
+                    partnerId = p2.id!!,
+                    pgType = PgType.TEST_PG,
+                    priority = 1,
+                    isActive = true,
+                ),
+            )
+            pgMappingRepo.save(
+                PgMappingEntity(
+                    partnerId = p2.id!!,
+                    pgType = PgType.DUMMY_PAY,
+                    priority = 2,
+                    isActive = true,
+                ),
+            )
         }
     }
 }

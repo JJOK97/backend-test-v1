@@ -6,27 +6,27 @@ import im.bigs.pg.application.pg.port.out.PgClientOutPort
 import im.bigs.pg.domain.payment.PaymentStatus
 import im.bigs.pg.domain.pg.PgType
 import org.springframework.stereotype.Component
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import kotlin.random.Random
 
 /**
- * 목업 PG: 모든 승인을 성공으로 처리합니다.
- * - 실제 네트워크 호출은 없으며, 시나리오 이해를 위한 더미 구성입니다.
+ * DummyPay PG: Failover 테스트를 위한 더미 PG.
+ *
+ * Failover 시나리오를 테스트하기 위해 추가된 3번째 PG 구현체입니다.
+ *
+ * - 실제 네트워크 호출 없이 항상 성공 응답
+ * - 승인번호 형식: "DUMMY-{timestamp}"
  */
 @Component
-class MockPgClient : PgClientOutPort {
-    override val type: PgType = PgType.MOCK
+class DummyPayClient : PgClientOutPort {
+    override val type: PgType = PgType.DUMMY_PAY
 
-    override fun supports(partnerId: Long): Boolean = partnerId % 2L == 1L
+    override fun supports(partnerId: Long): Boolean = false // DB 기반 매핑에서 관리
 
     override fun approve(request: PgApproveRequest): PgApproveResult {
-        val dateOfMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("MMdd"))
-        val randomDigits = Random.nextInt(9999).toString().padStart(4, '0')
+        val timestamp = System.currentTimeMillis()
         return PgApproveResult(
-            approvalCode = "$dateOfMonth$randomDigits",
+            approvalCode = "DUMMY-$timestamp",
             approvedAt = LocalDateTime.now(ZoneOffset.UTC),
             status = PaymentStatus.APPROVED,
         )

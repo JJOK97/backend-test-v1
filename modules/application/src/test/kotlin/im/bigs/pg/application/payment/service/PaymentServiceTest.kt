@@ -6,7 +6,7 @@ import im.bigs.pg.application.payment.port.`in`.PaymentCommand
 import im.bigs.pg.application.payment.port.out.PaymentOutPort
 import im.bigs.pg.application.pg.port.out.PgApproveRequest
 import im.bigs.pg.application.pg.port.out.PgApproveResult
-import im.bigs.pg.application.pg.port.out.PgClientOutPort
+import im.bigs.pg.application.pg.service.PgClientSelector
 import im.bigs.pg.domain.partner.FeePolicy
 import im.bigs.pg.domain.partner.Partner
 import im.bigs.pg.domain.payment.Payment
@@ -29,17 +29,18 @@ class PaymentServiceTest {
     private val partnerRepo = mockk<PartnerOutPort>()
     private val feeRepo = mockk<FeePolicyOutPort>()
     private val paymentRepo = mockk<PaymentOutPort>()
-    private val pgClient = object : PgClientOutPort {
-        override fun supports(partnerId: Long) = true
-        override fun approve(request: PgApproveRequest) =
-            PgApproveResult("APPROVAL-123", LocalDateTime.of(2024, 1, 1, 0, 0), PaymentStatus.APPROVED)
-    }
+    private val pgClientSelector = mockk<PgClientSelector>()
 
     @Test
     @DisplayName("결제 시 수수료 정책을 적용하고 저장해야 한다")
     fun `결제 시 수수료 정책을 적용하고 저장해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test", true)
+        every { pgClientSelector.approveWithFailover(1L, any()) } returns PgApproveResult(
+            "APPROVAL-123",
+            LocalDateTime.of(2024, 1, 1, 0, 0),
+            PaymentStatus.APPROVED
+        )
         every { feeRepo.findEffectivePolicy(1L, any()) } returns FeePolicy(
             id = 10L, partnerId = 1L, effectiveFrom = LocalDateTime.ofInstant(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC),
             percentage = BigDecimal("0.0300"), fixedFee = BigDecimal("100")
@@ -59,7 +60,7 @@ class PaymentServiceTest {
     @Test
     @DisplayName("제휴사가 존재하지 않으면 예외가 발생해야 한다")
     fun `제휴사가 존재하지 않으면 예외가 발생해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(999L) } returns null
 
         val cmd = PaymentCommand(partnerId = 999L, amount = BigDecimal("10000"), cardLast4 = "4242")
@@ -72,7 +73,7 @@ class PaymentServiceTest {
     @Test
     @DisplayName("제휴사가 비활성화된 경우 예외가 발생해야 한다")
     fun `제휴사가 비활성화된 경우 예외가 발생해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test", active = false)
 
         val cmd = PaymentCommand(partnerId = 1L, amount = BigDecimal("10000"), cardLast4 = "4242")
@@ -85,8 +86,13 @@ class PaymentServiceTest {
     @Test
     @DisplayName("수수료 정책이 없는 경우 예외가 발생해야 한다")
     fun `수수료 정책이 없는 경우 예외가 발생해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test", true)
+        every { pgClientSelector.approveWithFailover(1L, any()) } returns PgApproveResult(
+            "APPROVAL-123",
+            LocalDateTime.of(2024, 1, 1, 0, 0),
+            PaymentStatus.APPROVED
+        )
         every { feeRepo.findEffectivePolicy(1L, any()) } returns null
 
         val cmd = PaymentCommand(partnerId = 1L, amount = BigDecimal("10000"), cardLast4 = "4242")
@@ -99,8 +105,13 @@ class PaymentServiceTest {
     @Test
     @DisplayName("퍼센트 수수료만 적용 시 계산이 정확해야 한다")
     fun `퍼센트 수수료 적용만 시 계산이 정확해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test", true)
+        every { pgClientSelector.approveWithFailover(1L, any()) } returns PgApproveResult(
+            "APPROVAL-123",
+            LocalDateTime.of(2024, 1, 1, 0, 0),
+            PaymentStatus.APPROVED
+        )
         every { feeRepo.findEffectivePolicy(1L, any()) } returns FeePolicy(
             id = 10L, partnerId = 1L, effectiveFrom = LocalDateTime.ofInstant(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC),
             percentage = BigDecimal("0.0235"), fixedFee = null
@@ -118,8 +129,13 @@ class PaymentServiceTest {
     @Test
     @DisplayName("결제 생성 전체 흐름이 정상 동작해야 한다.")
     fun `결제 생성 전체 흐름이 정상 동작해야 한다`() {
-        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, listOf(pgClient))
+        val service = PaymentService(partnerRepo, feeRepo, paymentRepo, pgClientSelector)
         every { partnerRepo.findById(1L) } returns Partner(1L, "TEST", "Test Partner", true)
+        every { pgClientSelector.approveWithFailover(1L, any()) } returns PgApproveResult(
+            "APPROVAL-123",
+            LocalDateTime.of(2024, 1, 1, 0, 0),
+            PaymentStatus.APPROVED
+        )
         every { feeRepo.findEffectivePolicy(1L, any()) } returns FeePolicy(
             id = 10L, partnerId = 1L,
             effectiveFrom = LocalDateTime.ofInstant(Instant.parse("2020-01-01T00:00:00Z"), ZoneOffset.UTC),
